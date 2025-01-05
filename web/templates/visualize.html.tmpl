@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+  <html>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <body>
+    <canvas id="sierpinski"></canvas>
+
+    <script>
+      var xyValues = [{{range .Points}}{{.}},{{end}}];
+
+      new Chart("sierpinski", {
+        type: "scatter",
+        data: {
+          datasets: [{
+            pointRadius: {{.PointRadius}},
+            pointBackgroundColor: "rgb({{.R}},{{.B}},{{.G}})",
+            data: xyValues
+          }]
+        },
+        options: {
+          legend: {display: false},
+          scales: {
+            xAxes: [{ticks: {min: 0, max:{{.GraphDimension}}}}],
+            yAxes: [{ticks: {min: 0, max:{{.GraphDimension}}}}],
+          }
+        }
+      });
+    </script>
+
+    </body>
+  </html>
+
+
