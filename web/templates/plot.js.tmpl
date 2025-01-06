@@ -1,0 +1,19 @@
+      var xyValues = [{{range .Chaos.Points}}{{.}},{{end}}];
+
+      new Chart("sierpinski", {
+        type: "scatter",
+        data: {
+          datasets: [{
+            pointRadius: {{.PointRadius}},
+            pointBackgroundColor: "rgb({{.PointColor.R}},{{.PointColor.B}},{{.PointColor.G}})",
+            data: xyValues
+          }]
+        },
+        options: {
+          legend: {display: false},
+          scales: {
+            xAxes: [{ticks: {min: 0, max:{{.Chaos.SideLength}}}}],
+            yAxes: [{ticks: {min: 0, max:{{.Chaos.SideLength}}}}],
+          }
+        }
+      });

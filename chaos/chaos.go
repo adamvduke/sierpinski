@@ -37,12 +37,6 @@ type Triangle struct {
 	c      *Point
 }
 
-// Opts provides a data carrier for specifying the size of a Triangle and the
-// number of Points to create.
-type Opts struct {
-	Size, PointCount int
-}
-
 // New creates a Triangle with the given length and number of points.
 func New(sideLength, pointCount int) *Triangle {
 	xMid := float64(sideLength) / 2.0
@@ -63,7 +57,7 @@ func New(sideLength, pointCount int) *Triangle {
 	return t
 }
 
-// GeneratePoints populates the Triangle's set of graphable Points.
+// GeneratePoints populates the Triangle's set of Points.
 func (s *Triangle) GeneratePoints() []*Point {
 	graphPoints := make([]*Point, s.PointCount)
 	current := s.randomPoint()

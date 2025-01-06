@@ -9,7 +9,7 @@ const (
 
 	// DefaultPointCount provides a default value for the number of points in a
 	// sierpinski triangle.
-	DefaultPointCount = 500
+	DefaultPointCount = 5000
 
 	// DefaultPointRadius provides a default value for the size of a point when
 	// graphed.

@@ -5,50 +5,80 @@ package web
 import (
 	"log"
 	"net/http"
-	"os/exec"
 	"strconv"
-	"time"
 
 	"github.com/adamvduke/sierpinski/chaos"
 	"github.com/adamvduke/sierpinski/config"
+	"github.com/adamvduke/sierpinski/static"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 const (
 	listenAddr = "localhost:8080"
 )
 
-// Serve starts an http server that serves a single route, "/", which provides
-// an html visualization of a sierpinski triangle.
-func Serve(open bool) {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		size := intParam(r, "size", config.DefaultBaseLength)
-		count := intParam(r, "count", config.DefaultPointCount)
-		radius := floatParam(r, "radius", config.DefaultPointRadius)
-		t := chaos.New(size, count)
-		opts := &RenderOpts{
-			PointRadius: radius,
-			PointColor: &RGB{
-				R: config.DefaultPointRed,
-				G: config.DefaultPointGreen,
-				B: config.DefaultPointBlue,
-			},
-		}
-		if err := Write(t, w, opts); err != nil {
-			panic(err)
-		}
-	})
-	go maybeOpen(open)
-	log.Fatal(http.ListenAndServe(listenAddr, nil))
+// Serve starts an http server which provides visualizations of a sierpinski
+// triangle.
+func Serve() {
+	mux := chi.NewMux()
+	mux.Use(middleware.Logger)
+	mux.Use(middleware.Recoverer)
+
+	publicFS, err := static.PublicFS()
+	if err != nil {
+		panic(err)
+	}
+	ph, ok := http.StripPrefix("/public/", http.FileServerFS(publicFS)).(http.HandlerFunc)
+	if ok {
+		mux.Get("/public/*", ph)
+	}
+	mux.Get("/", writeHTML)
+	mux.Get("/plot.js", writeJS)
+	mux.Get("/data.json", writeJSON)
+
+	log.Fatal(http.ListenAndServe(listenAddr, mux))
 }
 
-func maybeOpen(open bool) error {
-	time.Sleep(2 * time.Second)
-	if open {
-		if err := exec.Command("open", "http://"+listenAddr).Run(); err != nil {
-			return err
-		}
+func writeHTML(w http.ResponseWriter, r *http.Request) {
+	opts := getOptions(r)
+	if err := WriteHTML(w, opts); err != nil {
+		panic(err)
 	}
-	return nil
+}
+
+func writeJS(w http.ResponseWriter, r *http.Request) {
+	opts := getOptions(r)
+	if err := WriteJS(w, opts); err != nil {
+		panic(err)
+	}
+}
+
+func writeJSON(w http.ResponseWriter, r *http.Request) {
+	opts := getOptions(r)
+	if err := WriteJSON(w, opts); err != nil {
+		panic(err)
+	}
+}
+
+func getOptions(req *http.Request) *RenderOpts {
+	size := intParam(req, "size", config.DefaultBaseLength)
+	count := intParam(req, "count", config.DefaultPointCount)
+	radius := floatParam(req, "radius", config.DefaultPointRadius)
+	red := intParam(req, "r", config.DefaultPointRed)
+	green := intParam(req, "g", config.DefaultPointGreen)
+	blue := intParam(req, "b", config.DefaultPointBlue)
+	opts := &RenderOpts{
+		Chaos:       chaos.New(size, count),
+		PointRadius: radius,
+		PointColor: &RGB{
+			R: red,
+			G: green,
+			B: blue,
+		},
+	}
+	return opts
 }
 
 func intParam(r *http.Request, name string, defaultValue int) int {

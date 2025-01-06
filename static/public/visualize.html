@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+<body>
+  <canvas id="sierpinski"></canvas>
+  <script>
+    $(document).ready(function () {
+      $.getJSON("/data.json", function (resp) {
+        var xyValues = resp.chaos.points;
+        new Chart("sierpinski", {
+          type: "scatter",
+          data: {
+            datasets: [{
+              pointRadius: resp.point_radius,
+              pointBackgroundColor: `rgb(${resp.point_color.r},${resp.point_color.g},${resp.point_color.b})`,
+              data: xyValues
+            }]
+          },
+          options: {
+            legend: { display: false },
+            scales: {
+              xAxes: [{ ticks: { min: 0, max: resp.chaos.length } }],
+              yAxes: [{ ticks: { min: 0, max: resp.chaos.length } }],
+            }
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

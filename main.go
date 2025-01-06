@@ -5,11 +5,16 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 	"os/exec"
 
 	"github.com/adamvduke/sierpinski/chaos"
 	"github.com/adamvduke/sierpinski/config"
 	"github.com/adamvduke/sierpinski/web"
+)
+
+const (
+	visualizeHTML = "visualize.html"
 )
 
 func main() {
@@ -26,11 +31,11 @@ func main() {
 
 	if *serve {
 		// blocks forever
-		web.Serve(*open)
+		web.Serve()
 	}
 
-	opts := &chaos.Opts{Size: *size, PointCount: *count}
 	renderOpts := &web.RenderOpts{
+		Chaos:       chaos.New(*size, *count),
 		PointRadius: *radius,
 		PointColor: &web.RGB{
 			R: *r,
@@ -39,15 +44,27 @@ func main() {
 		},
 	}
 
-	// writes the rendered file to disk and returns the path to the file
-	path, err := web.WriteFile(opts, renderOpts)
-	if err != nil {
+	// writes the rendered file to disk
+	if err := writeFile(renderOpts); err != nil {
 		log.Fatal(err)
 	}
 
 	if *open {
-		if err := exec.Command("open", path).Run(); err != nil {
+		if err := exec.Command("open", visualizeHTML).Run(); err != nil {
 			log.Fatal(err)
 		}
 	}
+}
+
+// writeFile uses the given parameters to create a chaos.Triangle write an html
+// visualization to a file.
+func writeFile(opts *web.RenderOpts) error {
+	outFile, err := os.Create(visualizeHTML)
+	if err != nil {
+		return err
+	}
+	if err := web.WriteHTML(outFile, opts); err != nil {
+		return err
+	}
+	return nil
 }
